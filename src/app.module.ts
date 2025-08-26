@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { RedisConfigService } from './shared/config/redis.config';
 import { RedisModule } from './shared/config/redis.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { ClientLogModule } from './api/client/client-log.module';
 
 @Module({
   imports: [
@@ -36,12 +35,13 @@ import { redisStore } from 'cache-manager-redis-store';
         });
         return {
           store: store as any,
-          ttl: 60 * 60 * 24 * 7,
+          ttl: 60 * 60 * 24 * 1,
         };
       },
     }),
+    ClientLogModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
