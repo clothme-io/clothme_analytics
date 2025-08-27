@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, QueueEvents } from 'bullmq';
+import { ConfigService } from '@nestjs/config';
 import { AddClientLogDTOInput, AddClientLogDTOResponseData } from '../../dto/add-client-log.dto';
 
 
@@ -11,8 +12,22 @@ export class AddClientLogRedisService {
 
   constructor(
     @InjectQueue('add-client-log') private addClientLogQueue: Queue,
+    private configService: ConfigService,
   ) {
-    this.queueEvents = new QueueEvents('add-client-log');
+    const redisUrl = this.configService.get<string>('REDIS_URL');
+    console.log('QueueEvents using Redis URL:', redisUrl);
+    
+    // Parse the Redis URL for connection options
+    const url = new URL(redisUrl);
+    
+    this.queueEvents = new QueueEvents('add-client-log', {
+      connection: {
+        host: url.hostname,
+        port: parseInt(url.port),
+        password: url.password,
+        username: url.username || 'default',
+      }
+    });
   }
 
   async addClientLog(jobId: string, body: AddClientLogDTOInput): Promise<AddClientLogDTOResponseData> {
