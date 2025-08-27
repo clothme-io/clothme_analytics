@@ -14,6 +14,9 @@ export class RedisConfigService {
       maxRetriesPerRequest: null,
     };
 
+    // Log the Redis URL for debugging
+    console.log('Connecting to Redis URL:', redisUrlFromEnv);
+    
     const redis = new Redis(redisUrlFromEnv + '?family=0', options);
 
     redis.on('error', (err) => {

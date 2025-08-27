@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
-import { RedisConfigService } from './shared/config/redis.config';
 import { RedisModule } from './shared/config/redis.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
 import { ClientLogModule } from './api/client/client-log.module';
+import { ClickHouseModule } from './shared/config/click-house/clickhouse.module';
 
 @Module({
   imports: [
@@ -15,31 +14,39 @@ import { ClientLogModule } from './api/client/client-log.module';
     }),
     RedisModule,
     BullModule.forRootAsync({
-      useFactory: (redisConfigService: RedisConfigService) => ({
-        connection: redisConfigService.createRedisClient(),
-      }),
-      inject: [RedisConfigService],
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+        console.log('BullMQ using Redis URL:', redisUrl);
+        return {
+          connection: {
+            host: new URL(redisUrl).hostname,
+            port: parseInt(new URL(redisUrl).port),
+            password: new URL(redisUrl).password,
+            username: new URL(redisUrl).username || 'default',
+          },
+        };
+      },
     }),
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        const store = await redisStore({
-          socket: {
-            host: configService.get<string>('REDIS_CACHE_HOST'),
-            port: configService.get<number>('REDIS_CACHE_PORT'),
-          },
-          url: configService.get<string>('REDIS_CACHE_URL'),
-          password: configService.get<string>('REDIS_CACHE_PASSWORD'),
-        });
+      useFactory: (configService: ConfigService) => {
+        // Use the same Redis URL directly
+        const redisUrl = configService.get<string>('REDIS_URL');
+        console.log('CacheModule using Redis URL:', redisUrl);
+        
+        // Use the RedisConfigService's client instead of creating a new one
         return {
-          store: store as any,
-          ttl: 60 * 60 * 24 * 1,
+          store: undefined, // Don't use Redis store for now to avoid connection issues
+          ttl: 60 * 60 * 24 * 1, // 1 day cache TTL
         };
       },
     }),
     ClientLogModule,
+    ClickHouseModule,
   ],
   controllers: [],
   providers: [],
