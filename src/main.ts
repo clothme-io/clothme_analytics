@@ -27,10 +27,31 @@ async function bootstrap() {
 
   // Set up Swagger
   const config = new DocumentBuilder()
-    .setTitle('Clothme API')
-    .setDescription('The Clothme API description')
+    .setTitle('Clothme Analytics API')
+    .setDescription('The Clothme Analytics API documentation')
     .setVersion('1.0')
-    .addTag('clothme')
+    .addTag('analytics')
+    .addTag('client')
+    .addBearerAuth(
+      { 
+        type: 'http', 
+        scheme: 'bearer', 
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: 'Enter JWT token',
+        in: 'header'
+      },
+      'Authorization',
+    )
+    .addApiKey(
+      { 
+        type: 'apiKey', 
+        name: 'X-token', 
+        in: 'header',
+        description: 'API Key for authentication'
+      },
+      'X-token',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('v1/api', app, document);
