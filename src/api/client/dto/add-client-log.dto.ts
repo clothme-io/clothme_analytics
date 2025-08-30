@@ -5,24 +5,26 @@ import { ErrorReturnType, IErrorReturnType } from 'src/shared/types/ErrorReturnT
 export class AddClientLogDTOInput {
 
   @ApiProperty({
-    description: 'Language for the account',
-    example: 'en',
+    description: 'Account identifier',
+    example: 'acc_12345',
+    default: 'acc_default',
   })
-  @IsString({ message: 'Language must be a string' })
-  @IsNotEmpty({ message: 'Language is required' })
+  @IsString({ message: 'Account ID must be a string' })
+  @IsNotEmpty({ message: 'Account ID is required' })
   accountId: string;
 
   @ApiProperty({
-    description: 'Date for the account',
+    description: 'Timestamp when the log was created',
     example: '2023-01-01T00:00:00.000Z',
+    default: new Date().toISOString(),
   })
   @IsString({ message: 'Date must be a string in ISO format' })
   @IsNotEmpty({ message: 'Date is required' })
   createdAt: string;
 
   @ApiProperty({
-    description: 'Payload for the account',
-    example: { 'dark': true },
+    description: 'Log data payload containing client analytics information',
+    example: { 'event': 'page_view', 'page': '/home', 'dark_mode': true, 'session_duration': 120 },
   })
   @IsObject({ message: 'Payload must be an object' })
   payload: object;
