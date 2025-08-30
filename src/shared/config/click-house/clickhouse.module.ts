@@ -3,11 +3,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createClient } from '@clickhouse/client';
 import { ClickHouseService } from './clickhouse.service';
+import { ClickHouseSchemaService } from './clickhouse-schema.service';
 
 @Module({
   imports: [ConfigModule],
   providers: [
     ClickHouseService,
+    ClickHouseSchemaService,
     {
       provide: 'CLICKHOUSE_CLIENT',
       useFactory: (configService: ConfigService) => {
@@ -19,11 +21,14 @@ import { ClickHouseService } from './clickhouse.service';
           // Optional: Adjust for performance
           max_open_connections: 10,
           compression: { response: true, request: true },
+          clickhouse_settings: {
+            allow_experimental_json_type: 1
+          },
         });
       },
       inject: [ConfigService],
     },
   ],
-  exports: [ClickHouseService],
+  exports: [ClickHouseService, ClickHouseSchemaService],
 })
 export class ClickHouseModule {}
